@@ -1,0 +1,16 @@
+- server:
+      port: 443
+      domain:
+          subject: balraug.com
+      https:
+          path: /var/local/certs
+          crt: fullchain.pem
+          key: privkey.pem
+      log: /var/log/nginx
+      other:
+          - 'client_max_body_size 0'
+      locations:
+          - type: proxy_pass
+            value: http://php-server:6000
+            include: /etc/nginx/includes/default.proxy.conf
+      redirect: 80

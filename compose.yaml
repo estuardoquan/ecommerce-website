@@ -1,0 +1,90 @@
+networks:
+    backend:
+        driver: bridge
+    frontend:
+        driver: bridge
+volumes:
+    mysql:
+        driver: local
+    redis:
+        driver: local
+    step:
+        external: true
+        name: step_crt_jwt
+services:
+    mysql:
+        extends:
+            file: $TEMPLATE_DB_MYSQL
+            service: mysql
+        volumes:
+            - mysql:/var/lib/mysql
+        networks:
+            backend: {}
+    redis:
+        extends:
+            file: $TEMPLATE_DB_REDIS
+            service: redis
+        volumes:
+            - redis:/data
+        networks:
+            backend: {}
+    phpfpm:
+        extends:
+            file: $TEMPLATE_PHP_PHPFPM
+            service: phpfpm-dev
+        volumes:
+            - ./laravel:/var/www/html
+        networks:
+            backend: {}
+        depends_on:
+            - mysql
+            - redis
+    vite:
+        image: dqio/node:latest
+        environment:
+            VITECONFIG_HMR_HOST: $PHP_VITECONFIG_HMR_HOST
+            VITECONFIG_HMR_CLIENTPORT: 443
+            VITECONFIG_STEPPATH: $STEP_CRT 
+        volumes:
+            - step:$STEP_CRT:ro
+            - ./laravel:/home/node/app
+        networks:
+            frontend: {}
+        depends_on:
+            - phpfpm
+    ws:
+        extends:
+            file: $TEMPLATE_NODE_WS
+            service: ws
+        volumes:
+            - step:$STEP_CRT:ro
+            - ./ws:/home/node/app
+        networks:
+            backend: {}
+            frontend: {}
+        depends_on:
+            - phpfpm
+    fcgi:
+        extends:
+            file: $TEMPLATE_NGINX_FCGI
+            service: fcgi
+        volumes:
+            - step:$STEP_CRT:ro
+            - ./laravel:/var/www/html
+        networks:
+            backend: {}
+            frontend: {}
+        depends_on:
+            - phpfpm
+    server:
+        extends:
+            file: $TEMPLATE_NGINX_SERVER
+            service: server
+        volumes:
+            - step:$STEP_CRT:ro
+            - ./servers/dev.servers.yaml:/etc/nginx/yaml/servers.yaml
+        networks:
+            frontend: {}
+        depends_on:
+            - fcgi
+            - vite

@@ -71,6 +71,7 @@ services:
         volumes:
             - step:$STEP_CRT:ro
             - ./laravel:/var/www/html
+            - ./nginx/fcgi.yaml:/etc/nginx/yaml/servers.yaml
         networks:
             backend: {}
             frontend: {}
@@ -82,7 +83,7 @@ services:
             service: server
         volumes:
             - step:$STEP_CRT:ro
-            - ./servers/dev.servers.yaml:/etc/nginx/yaml/servers.yaml
+            - ./nginx/dev.yaml:/etc/nginx/yaml/servers.yaml
         networks:
             frontend: {}
         depends_on:

@@ -8,15 +8,18 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/estuardoquan/laravel-breezi"
+            "url": "https://github.com/estuardoquan/laravel-auth"
         }
     ],
     "require": {
         "php": "^8.3",
+        "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^13.8",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "tightenco/ziggy": "^2.0"
     },
     "require-dev": {
+        "estuardoquan/laravel-auth": "dev-main",
         "fakerphp/faker": "^1.23",
         "laravel/pail": "^1.2.5",
         "laravel/pao": "^1.0.6",

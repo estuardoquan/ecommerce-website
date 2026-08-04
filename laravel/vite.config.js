@@ -1,24 +1,34 @@
 import { defineConfig } from 'vite';
+import https from 'vite-plugin-https';
 import laravel from 'laravel-vite-plugin';
-import { bunny } from 'laravel-vite-plugin/fonts';
+import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
 
-export default defineConfig({
-    plugins: [
-        laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
-            refresh: true,
-            fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
-                }),
-            ],
-        }),
-        tailwindcss(),
-    ],
+export default defineConfig(async () => ({
     server: {
-        watch: {
-            ignored: ['**/storage/framework/views/**'],
+        host: true,
+        port: 5173,
+        hmr: {
+            host: process.env.VITECONFIG_HMR_HOST,
+            clientPort: process.env.VITECONFIG_HMR_CLIENTPORT,
         },
     },
-});
+    plugins: [
+        laravel({
+            input: ['resources/js/app.ts'],
+            refresh: true,
+        }),
+        vue({
+            template: {
+                transformAssetUrls: {
+                    base: null,
+                    includeAbsolute: false,
+                },
+            },
+        }),
+        tailwindcss(),
+        https({
+            path: process.env.VITECONFIG_HTTPS_PATH,
+        }),
+    ],
+}));

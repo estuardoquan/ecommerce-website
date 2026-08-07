@@ -1,17 +1,28 @@
 networks:
     backend:
         driver: bridge
-    frontend:
+    local:
         driver: bridge
+    ipvlan16:
+        external: true
+        name: ipvlan16
 volumes:
     mysql:
         driver: local
     redis:
         driver: local
-    step:
-        external: true
-        name: step_crt_jwt
+secrets:
+    provisioner_password:
+        file: $STEP_PROVISIONER_PASSWORD_FILE
 services:
+    crt:
+        extends:
+            file: $TEMPLATE_STEP_CRT
+            service: crt
+        volumes:
+            - ./tmp:/var/local/step
+        networks:
+            local: {}
     mysql:
         extends:
             file: $TEMPLATE_DB_MYSQL
@@ -44,12 +55,12 @@ services:
         environment:
             VITECONFIG_HMR_HOST: $PHP_VITECONFIG_HMR_HOST
             VITECONFIG_HMR_CLIENTPORT: 443
-            VITECONFIG_STEPPATH: $STEP_CRT 
+            VITECONFIG_HTTPS_PATH: $_STEP 
         volumes:
-            - step:$STEP_CRT:ro
+            - ./tmp:$_STEP:ro
             - ./laravel:/home/node/app
         networks:
-            frontend: {}
+            local: {}
         depends_on:
             - phpfpm
     ws:
@@ -57,35 +68,37 @@ services:
             file: $TEMPLATE_NODE_WS
             service: ws
         volumes:
-            - step:$STEP_CRT:ro
+            - ./tmp:$_STEP:ro
             - ./ws:/home/node/app
         networks:
             backend: {}
-            frontend: {}
+            local: {}
         depends_on:
-            - phpfpm
+            - redis
     fcgi:
         extends:
-            file: $TEMPLATE_NGINX_FCGI
-            service: fcgi
+            file: $TEMPLATE_NGINX_SERVER
+            service: server
         volumes:
-            - step:$STEP_CRT:ro
+            - ./tmp:$_STEP:ro
             - ./laravel:/var/www/html
             - ./nginx/fcgi.yaml:/etc/nginx/yaml/servers.yaml
         networks:
             backend: {}
-            frontend: {}
+            local: {}
         depends_on:
+            - vite
             - phpfpm
     server:
         extends:
             file: $TEMPLATE_NGINX_SERVER
             service: server
         volumes:
-            - step:$STEP_CRT:ro
-            - ./nginx/dev.yaml:/etc/nginx/yaml/servers.yaml
+            - ./tmp:$_STEP:ro
+            - ./nginx/proxy.yaml:/etc/nginx/yaml/servers.yaml
         networks:
-            frontend: {}
+            local: {}
+            ipvlan16:
+                ipv4_address: $SERVER_IPVLAN16_ADDRESS
         depends_on:
-            - fcgi
-            - vite
+            - ws

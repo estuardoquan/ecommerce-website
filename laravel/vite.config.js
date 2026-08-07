@@ -8,6 +8,9 @@ export default defineConfig(async () => ({
     server: {
         host: true,
         port: 5173,
+        //cors: {
+        //    origin: ['https://shop.local', 'https://www.shop.local'],
+        //},
         hmr: {
             host: process.env.VITECONFIG_HMR_HOST,
             clientPort: process.env.VITECONFIG_HMR_CLIENTPORT,

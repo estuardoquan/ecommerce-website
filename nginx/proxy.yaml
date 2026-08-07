@@ -1,0 +1,35 @@
+- server:
+      port: 443
+      domain:
+          subject: shop.local
+      https: /var/local/step
+      log: /var/log/nginx
+      other:
+          - 'client_max_body_size 0'
+      locations:
+          - type: proxy_pass
+            value: http://fcgi:6000
+            include: /etc/nginx/includes/default.proxy.conf
+      redirect: 80
+- server:
+      port: 443
+      domain:
+          subject: vite.shop.local
+      https: /var/local/step
+      log: /var/log/nginx
+      locations:
+          - type: proxy_pass
+            value: https://vite:5173
+            include: /etc/nginx/includes/default.proxy.conf
+      redirect: 80
+- server:
+      port: 443
+      domain:
+          subject: ws.shop.local
+      https: /var/local/step
+      log: /var/log/nginx
+      locations:
+          - type: proxy_pass
+            value: https://ws:5000
+            include: /etc/nginx/includes/default.proxy.conf
+      redirect: 80

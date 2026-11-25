@@ -3,6 +3,8 @@ volumes:
         driver: local
     redis:
         driver: local
+    crt:
+        driver: local
 secrets:
     provisioner_password:
         file: $STEP_PROVISIONER_PASSWORD_FILE
@@ -12,7 +14,7 @@ services:
             file: $TEMPLATE_STEP_CRT
             service: crt
         volumes:
-            - ./tmp:/var/local/step
+            - crt:/var/local/step
     mysql:
         extends:
             file: $TEMPLATE_DB_MYSQL
@@ -35,13 +37,11 @@ services:
             - mysql
             - redis
     vite:
-        image: dqio/node:latest
-        environment:
-            VITECONFIG_HMR_HOST: $PHP_VITECONFIG_HMR_HOST
-            VITECONFIG_HMR_CLIENTPORT: 443
-            VITECONFIG_HTTPS_PATH: $_STEP 
+        extends:
+            file: $TEMPLATE_NODE_VITE
+            service: vite
         volumes:
-            - ./tmp:$_STEP:ro
+            - crt:/var/local/step:ro
             - ./laravel:/home/node/app
         depends_on:
             - phpfpm
@@ -50,7 +50,7 @@ services:
             file: $TEMPLATE_NODE_WS
             service: ws
         volumes:
-            - ./tmp:$_STEP:ro
+            - crt:/var/local/step:ro
             - ./ws:/home/node/app
         depends_on:
             - redis
@@ -59,18 +59,19 @@ services:
             file: $TEMPLATE_NGINX_SERVER
             service: server
         volumes:
-            - ./tmp:$_STEP:ro
+            - crt:/var/local/step:ro
             - ./laravel:/var/www/html
             - ./nginx/fcgi.yaml:/etc/nginx/yaml/servers.yaml
         depends_on:
-            - vite
             - phpfpm
     server:
         extends:
             file: $TEMPLATE_NGINX_SERVER
             service: server
         volumes:
-            - ./tmp:$_STEP:ro
+            - crt:/var/local/step:ro
             - ./nginx/proxy.yaml:/etc/nginx/yaml/servers.yaml
         depends_on:
+            - fcgi
+            - vite
             - ws

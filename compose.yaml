@@ -42,7 +42,7 @@ services:
     phpfpm:
         extends:
             file: $TEMPLATE_PHP_PHPFPM
-            service: phpfpm-dev
+            service: phpfpm
         volumes:
             - ./laravel:/var/www/html
         networks:

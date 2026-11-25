@@ -1,0 +1,37 @@
+networks:
+    backend:
+        driver: bridge
+    local:
+        driver: bridge
+    20_vlan:
+        external: true
+        name: 20_vlan
+services:
+    crt:
+        networks:
+            local: {}
+    mysql:
+        networks:
+            backend: {}
+    redis:
+        networks:
+            backend: {}
+    phpfpm:
+        networks:
+            backend: {}
+    vite:
+        networks:
+            local: {}
+    ws:
+        networks:
+            backend: {}
+            local: {}
+    fcgi:
+        networks:
+            backend: {}
+            local: {}
+    server:
+        networks:
+            local: {}
+            20_vlan:
+                ipv4_address: $NGINX_SERVER_ADDRESS

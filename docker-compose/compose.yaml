@@ -1,11 +1,3 @@
-networks:
-    backend:
-        driver: bridge
-    local:
-        driver: bridge
-    ipvlan16:
-        external: true
-        name: ipvlan16
 volumes:
     mysql:
         driver: local
@@ -21,32 +13,24 @@ services:
             service: crt
         volumes:
             - ./tmp:/var/local/step
-        networks:
-            local: {}
     mysql:
         extends:
             file: $TEMPLATE_DB_MYSQL
             service: mysql
         volumes:
             - mysql:/var/lib/mysql
-        networks:
-            backend: {}
     redis:
         extends:
             file: $TEMPLATE_DB_REDIS
             service: redis
         volumes:
             - redis:/data
-        networks:
-            backend: {}
     phpfpm:
         extends:
             file: $TEMPLATE_PHP_PHPFPM
             service: phpfpm
         volumes:
             - ./laravel:/var/www/html
-        networks:
-            backend: {}
         depends_on:
             - mysql
             - redis
@@ -59,8 +43,6 @@ services:
         volumes:
             - ./tmp:$_STEP:ro
             - ./laravel:/home/node/app
-        networks:
-            local: {}
         depends_on:
             - phpfpm
     ws:
@@ -70,9 +52,6 @@ services:
         volumes:
             - ./tmp:$_STEP:ro
             - ./ws:/home/node/app
-        networks:
-            backend: {}
-            local: {}
         depends_on:
             - redis
     fcgi:
@@ -83,9 +62,6 @@ services:
             - ./tmp:$_STEP:ro
             - ./laravel:/var/www/html
             - ./nginx/fcgi.yaml:/etc/nginx/yaml/servers.yaml
-        networks:
-            backend: {}
-            local: {}
         depends_on:
             - vite
             - phpfpm
@@ -96,9 +72,5 @@ services:
         volumes:
             - ./tmp:$_STEP:ro
             - ./nginx/proxy.yaml:/etc/nginx/yaml/servers.yaml
-        networks:
-            local: {}
-            ipvlan16:
-                ipv4_address: $SERVER_IPVLAN16_ADDRESS
         depends_on:
             - ws
